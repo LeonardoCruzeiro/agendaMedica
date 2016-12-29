@@ -1,0 +1,91 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ModeloDao;
+
+import ModeloConection.ConexaoBD;
+import ModeloBeans.BeansMedico;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Leonardo
+ */
+public class DaoMedico {
+    ConexaoBD conex =new ConexaoBD();
+    BeansMedico mod = new BeansMedico();
+  
+    public void Salvar(BeansMedico mod){
+    try{   
+        conex.conexao();
+    PreparedStatement pst = conex.con.prepareStatement("insert into medico("
+            + "c_nomemedico,n_crmmedico,d_nascmedico,c_espemedico)values(?,?,?,?)");
+    pst.setString(1,mod.getNome());
+    pst.setInt(2,mod.getCrm());
+    pst.setString(3,mod.getNasc());
+    pst.setString(4,mod.getEspecialidade());
+    pst.execute();
+    
+    JOptionPane.showMessageDialog(null,"gravado com sucesso");
+    }catch(SQLException ex){
+    JOptionPane.showMessageDialog(null,"erro ao gravar /n erro: "+ex);
+}
+conex.desconecta();
+    } 
+
+public BeansMedico buscaMedico (BeansMedico mod){
+    conex.conexao();
+    conex.executaSQL("select * from medico where c_nomemedico like'%"+mod.getPesquisa()+"%'");
+    try{
+        conex.rs.first();
+        mod.setCodigo(conex.rs.getInt("n_codmedico"));
+        mod.setNome(conex.rs.getString("c_nomemedico"));
+        mod.setCrm(conex.rs.getInt("n_crmmedico"));
+        mod.setNasc(conex.rs.getString("d_nascmedico"));
+        mod.setEspecialidade(conex.rs.getString("c_espemedico"));
+        
+    }catch(SQLException ex){
+       JOptionPane.showMessageDialog(null,"MEDICO NAO ENCONTRADO"); 
+    }
+    conex.desconecta();
+    return mod;
+}
+
+public void Editar (BeansMedico mod){
+    conex.conexao();
+        try {
+            PreparedStatement pst = conex.con.prepareStatement("update medico set c_nomemedico=?, "
+                    + "n_crmmedico=?, d_nascmedico=?, c_espemedico=? where n_codmedico=? ");
+        pst.setString(1,mod.getNome());
+        pst.setInt(2,mod.getCrm());
+        pst.setString(3,mod.getNasc());
+        pst.setString(4,mod.getEspecialidade());
+        pst.setInt(5,mod.getCodigo());
+        pst.execute();
+            JOptionPane.showMessageDialog(null,"DADOS ALTERADOS COM SUCESSO");
+        } catch (SQLException ex) {
+           JOptionPane.showMessageDialog(null,"ERRO OS DADOS NAO FORAM ALTERADOS:/n "+ex); 
+        }
+        conex.desconecta();
+}
+
+public void Excluir(BeansMedico mod){
+    conex.conexao();
+    try{
+    PreparedStatement pst = conex.con.prepareStatement("delete from medico where n_codmedico=?");
+    pst.setInt(1,mod.getCodigo());
+    pst.execute();
+        JOptionPane.showMessageDialog(null,"DADOS EXCLUIDOS COM SUCESSO");
+    }catch(SQLException ex){
+        JOptionPane.showMessageDialog(null,"ERRO OS DADOS NAO FORAM EXCLUIDOS:/n "+ex);   
+    }
+    conex.desconecta();
+}
+
+}

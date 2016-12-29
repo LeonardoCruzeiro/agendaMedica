@@ -1,0 +1,96 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ModeloDao;
+
+import ModeloBeans.BeansUsuario;
+import ModeloConection.ConexaoBD;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Leonardo
+ */
+public class DaoUsuario {
+    
+    ConexaoBD conex = new ConexaoBD();
+    BeansUsuario usu = new BeansUsuario();
+    
+    public void Salvar(BeansUsuario usu){
+        conex.conexao();
+        
+        try {
+            PreparedStatement pst = conex.con.prepareStatement("insert into usuario (c_nomeusuario,n_senhausuario,c_tipousuario)values(?,?,?)");
+            pst.setString(1,usu.getUsuNome());
+            pst.setString(2,usu.getUsuSenha());
+            pst.setString(3,usu.getUsuTipo());
+            pst.execute();
+            JOptionPane.showMessageDialog(null,"Usuario inserido com sucesso");
+            
+        
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null,"Erro ao inserir o usuario "+ ex);
+        }
+        
+        
+        conex.desconecta();
+    
+   
+    }
+    
+    public BeansUsuario buscaUsuario(BeansUsuario usu){
+        conex.conexao();
+        
+        conex.executaSQL("select * from usuario where c_nomeusuario like'%"+usu.getPesquisar()+"%'");
+        
+        try {
+            conex.rs.first();
+            usu.setUsuCod(conex.rs.getInt("n_numeusuario"));
+            usu.setUsuNome(conex.rs.getString("c_nomeusuario"));
+            usu.setUsuSenha(conex.rs.getString("n_senhausuario"));
+            usu.setUsuTipo(conex.rs.getString("c_tipousuario"));
+            
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null,"Usuario nao encontrado");
+        }
+        
+        conex.desconecta();
+        return usu;
+    }
+    
+    public void Excluir (BeansUsuario usu){
+        conex.conexao();
+       try{ 
+        PreparedStatement pst = conex.con.prepareStatement("delete from usuario where n_numeusuario=?");
+        pst.setInt(1,usu.getUsuCod());
+        pst.execute();
+        JOptionPane.showMessageDialog(null,"Usuario excluido com sucessso");
+       }catch(SQLException ex){
+           JOptionPane.showMessageDialog(null,"Erro ao excluir o usuario"+ex);
+       }
+        conex.desconecta();
+    }
+    public void Alterar (BeansUsuario usu){
+        conex.conexao();
+        try{    
+        PreparedStatement pst = conex.con.prepareStatement("update usuario set c_nomeusuario=?,n_senhausuario=?,c_tipousuario=? where n_numeusuario=?");
+        pst.setString(1,usu.getUsuNome());
+        pst.setString(2,usu.getUsuSenha());
+        pst.setString(3,usu.getUsuTipo());
+        pst.setInt(4,usu.getUsuCod());
+        pst.execute();
+            JOptionPane.showMessageDialog(null, "Usuario ALterado com sucesso"  );
+        }catch(SQLException ex){
+            JOptionPane.showMessageDialog(null,"Erro ao alterar"+ ex);
+        }
+        conex.desconecta();
+    }
+            
+    
+}

@@ -1,0 +1,142 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ModeloDao;
+
+import ModeloBeans.BeansPaciente;
+import ModeloConection.ConexaoBD;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Leonardo
+ */
+public class DaoPaciente {
+    ConexaoBD conexBairro = new ConexaoBD();
+    ConexaoBD conex = new ConexaoBD();
+    int codBai;
+    String nomeBairro;
+
+public void buscaBairroCod(String nome){
+    
+    conex.conexao();
+    conex.executaSQL("select * from bairro where c_nomebairro='"+nome+"'");
+    try {
+        conex.rs.first();
+        codBai = conex.rs.getInt("n_numebairro");
+        
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,"Erro ao buscar bairro"+e);
+    }
+    conex.desconecta();
+
+    
+}
+
+public void BuscaNomeBairro(int cod){
+   conexBairro.conexao();
+   
+   try {
+       conexBairro.executaSQL("select * from bairro where n_numebairro="+cod);
+       conexBairro.rs.first();
+       nomeBairro = conexBairro.rs.getString("c_nomebairro");
+           
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,"erro ao buscar codigo " +e);
+    }
+     
+   
+   
+   
+   conexBairro.desconecta();
+}
+    
+public void Salvar(BeansPaciente paci){
+    buscaBairroCod(paci.getPaciBairro());
+    conex.conexao();
+    try {
+        PreparedStatement pst = conex.con.prepareStatement("insert into paciente (c_nomepaciente,d_nascpaciente,"
+                + "c_idpaciente,c_telepaciente,c_endpaciente,c_cepaciente,n_numepacbairro)values (?,?,?,?,?,?,?)");
+        pst.setString(1,paci.getPaciNome());
+        pst.setString(2,paci.getPaciNasc());
+        pst.setString(3,paci.getPaciId());
+        pst.setString(4,paci.getPaciFone());
+        pst.setString(5, paci.getPaciEnd());
+        pst.setString(6,paci.getPaciCep());
+        pst.setInt(7, codBai);
+        pst.execute();
+        JOptionPane.showMessageDialog(null,"Paciente gravado com sucesso");
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "paciente nao foi gravado" +e);
+    }
+    conex.desconecta();
+}
+
+public BeansPaciente buscaPaciente (BeansPaciente paci){
+        conex.conexao();
+        
+        
+        
+        try {
+            conex.executaSQL("select * from paciente where c_nomepaciente like'%"+paci.getPaciPesquisar()+"%'");
+            conex.rs.first();
+            BuscaNomeBairro(conex.rs.getInt("n_numepacbairro"));
+            
+            paci.setPaciCod(conex.rs.getInt("n_numepaciente"));
+            paci.setPaciNome(conex.rs.getString("c_nomepaciente"));
+            paci.setPaciNasc(conex.rs.getString("d_nascpaciente"));
+            paci.setPaciId(conex.rs.getString("c_idpaciente"));
+            paci.setPaciFone(conex.rs.getString("c_telepaciente"));
+            paci.setPaciEnd(conex.rs.getString("c_endpaciente"));
+            paci.setPaciCep(conex.rs.getString("c_cepaciente"));
+            paci.setPaciBairro(nomeBairro);
+            
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null,"Paciente nao encontrado"+ex);
+        }
+        
+        conex.desconecta();
+        return paci;
+}
+public void Editar (BeansPaciente paci){
+    conex.conexao();
+        try {
+            PreparedStatement pst = conex.con.prepareStatement("update paciente set c_nomepaciente=?, "
+                    + "d_nascpaciente=?, c_idpaciente=?, c_telepaciente=?, c_endpaciente=?, c_cepaciente=? where n_numepaciente=? ");
+        pst.setString(1,paci.getPaciNome());
+        pst.setString(2,paci.getPaciNasc());
+        pst.setString(3,paci.getPaciId());
+        pst.setString(4,paci.getPaciFone());
+        pst.setString(5,paci.getPaciEnd());
+        pst.setString(6,paci.getPaciCep());
+        pst.setInt(7,paci.getPaciCod());
+        pst.execute();
+            JOptionPane.showMessageDialog(null,"DADOS ALTERADOS COM SUCESSO");
+        } catch (SQLException ex) {
+           JOptionPane.showMessageDialog(null,"ERRO OS DADOS NAO FORAM ALTERADOS:/n "+ex); 
+        }
+        conex.desconecta();
+}
+
+public void Excluir (BeansPaciente pac){
+    conex.conexao();
+    try {
+        PreparedStatement pst = conex.con.prepareStatement("delete from paciente where n_numepaciente=?");
+        pst.setInt(1, pac.getPaciCod());
+        pst.execute();
+        
+        JOptionPane.showMessageDialog(null,"Paciente excluindo com sucesso");
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null,"erro ao excluir paciente"+e);
+    }
+    
+    conex.desconecta();
+}
+        
+
+
+}
